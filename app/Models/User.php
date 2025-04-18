@@ -19,6 +19,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'type',
     ];
 
     protected $hidden = [
@@ -33,7 +34,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['admin', 'guru', 'siswa','super_admin']);
+        return $this->hasAnyRole(['admin', 'guru', 'siswa', 'super_admin']);
     }
 
     public function student(): HasOne
@@ -59,5 +60,27 @@ class User extends Authenticatable implements FilamentUser
     public function bookRequests()
     {
         return $this->hasMany(BookRequest::class);
+    }
+    // Di model User
+    protected static function booted()
+    {
+        static::created(function (User $user) {
+            if ($user->type === 'student') {
+                $user->student()->create(['full_name' => $user->name]);
+            } elseif ($user->type === 'teacher') {
+                $user->teacher()->create(['full_name' => $user->name]);
+            }
+        });
+
+        static::updating(function (User $user) {
+            // Update full_name jika name diubah
+            if ($user->isDirty('name')) {
+                if ($user->type === 'student' && $user->student) {
+                    $user->student->update(['full_name' => $user->name]);
+                } elseif ($user->type === 'teacher' && $user->teacher) {
+                    $user->teacher->update(['full_name' => $user->name]);
+                }
+            }
+        });
     }
 }

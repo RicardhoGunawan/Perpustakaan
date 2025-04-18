@@ -93,7 +93,7 @@ class MemberResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // RelationManagers\UserRelationManager::class,
+            RelationManagers\UserRelationManager::class, // Removed or commented out due to missing class
         ];
     }
     

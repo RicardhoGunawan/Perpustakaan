@@ -48,9 +48,8 @@ class StudentResource extends Resource
 
                         Forms\Components\TextInput::make('user.password')
                             ->password()
-                            ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
-                            ->dehydrated(fn($state, $livewire): bool =>
-                                $state && $livewire instanceof Pages\CreateStudent)
+                            ->dehydrateStateUsing(fn($state) => filled($state) ? \Hash::make($state) : null)
+                            ->dehydrated(fn($state) => filled($state))
                             ->required(fn($livewire) => $livewire instanceof Pages\CreateStudent)
                             ->label('Password'),
                     ]),

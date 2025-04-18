@@ -29,25 +29,25 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
-                            
+
                         Forms\Components\TextInput::make('email')
                             ->email()
                             ->required()
                             ->maxLength(255),
-                            
+
                         Forms\Components\TextInput::make('password')
                             ->password()
                             ->required()
                             ->maxLength(255)
                             ->hiddenOn('edit'),
-                            
+
                         Forms\Components\Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()
                             ->preload()
                             ->required(),
                     ])->columns(2),
-                    
+
                 Forms\Components\Section::make('Profil Tambahan')
                     ->description('Isi sesuai dengan role pengguna')
                     ->schema([
@@ -57,69 +57,86 @@ class UserResource extends Resource
                                 'student' => 'Siswa',
                                 'teacher' => 'Guru',
                             ])
+                            ->required()
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $set('student.full_name', null);
                                 $set('teacher.full_name', null);
                             }),
-                            
+
                         Forms\Components\Fieldset::make('Data Siswa')
-                            ->visible(fn (Forms\Get $get) => $get('type') === 'student')
+                            ->visible(fn(Forms\Get $get) => $get('type') === 'student')
                             ->relationship('student')
+                            ->mutateRelationshipDataBeforeFillUsing(function (array $data, User $record): array {
+                                $data['full_name'] = $data['full_name'] ?? $record->name;
+                                return $data;
+                            })
                             ->schema([
                                 Forms\Components\TextInput::make('nis')
                                     ->required()
+                                    ->default('NIS-SEMENTARA') // Tambahkan default value
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('full_name')
                                     ->required()
-                                    ->maxLength(255),
-                                    
+                                    ->maxLength(255)
+                                    ->dehydrated(true) // Pastikan selalu disimpan meski tidak diubah
+                                    ->default(fn($operation, $record) => $record?->name), // Default value dari name user
+
                                 Forms\Components\TextInput::make('class')
                                     ->required()
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('phone_number')
                                     ->tel()
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('address')
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\DatePicker::make('date_of_birth'),
-                                    
+
                                 Forms\Components\FileUpload::make('profile_photo')
                                     ->image()
                                     ->directory('student-profiles'),
                             ])->columns(2),
-                            
+
+
                         Forms\Components\Fieldset::make('Data Guru')
-                            ->visible(fn (Forms\Get $get) => $get('type') === 'teacher')
+                            ->visible(fn(Forms\Get $get) => $get('type') === 'teacher')
                             ->relationship('teacher')
+                            ->mutateRelationshipDataBeforeFillUsing(function (array $data, User $record): array {
+                                $data['full_name'] = $data['full_name'] ?? $record->name;
+                                return $data;
+                            })
                             ->schema([
                                 Forms\Components\TextInput::make('nip')
                                     ->required()
+                                    ->default('NIP-SEMENTARA') // Tambahkan default value
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('full_name')
                                     ->required()
-                                    ->maxLength(255),
-                                    
+                                    ->maxLength(255)
+                                    ->dehydrated(true) // Pastikan selalu disimpan meski tidak diubah
+                                    ->default(fn($operation, $record) => $record?->name), // Default value dari name user
+
                                 Forms\Components\TextInput::make('subject')
                                     ->required()
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('phone_number')
                                     ->tel()
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\TextInput::make('address')
                                     ->maxLength(255),
-                                    
+
                                 Forms\Components\FileUpload::make('profile_photo')
                                     ->image()
                                     ->directory('teacher-profiles'),
                             ])->columns(2),
+
                     ]),
             ]);
     }
@@ -131,22 +148,22 @@ class UserResource extends Resource
                 Tables\Columns\ImageColumn::make('student.profile_photo')
                     ->label('Foto')
                     ->circular()
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name='.urlencode($record->name)),
-                    
+                    ->defaultImageUrl(fn($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name)),
+
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge(),
-                    
+
                 Tables\Columns\TextColumn::make('student.full_name')
                     ->label('Nama Lengkap')
                     ->toggleable()
-                    ->getStateUsing(fn ($record) => $record->student?->full_name ?? $record->teacher?->full_name),
-                    
+                    ->getStateUsing(fn($record) => $record->student?->full_name ?? $record->teacher?->full_name),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -156,14 +173,14 @@ class UserResource extends Resource
                 Tables\Filters\SelectFilter::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple(),
-                    
+
                 Tables\Filters\Filter::make('has_student')
                     ->label('Hanya Siswa')
-                    ->query(fn (Builder $query): Builder => $query->whereHas('student')),
-                    
+                    ->query(fn(Builder $query): Builder => $query->whereHas('student')),
+
                 Tables\Filters\Filter::make('has_teacher')
                     ->label('Hanya Guru')
-                    ->query(fn (Builder $query): Builder => $query->whereHas('teacher')),
+                    ->query(fn(Builder $query): Builder => $query->whereHas('teacher')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -175,16 +192,16 @@ class UserResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
-            // RelationManagers\BookLoansRelationManager::class,
-            // RelationManagers\BookRequestsRelationManager::class,
-            // RelationManagers\MemberRelationManager::class,
+            RelationManagers\BookLoansRelationManager::class,
+            RelationManagers\BookRequestsRelationManager::class,
+            RelationManagers\MemberRelationManager::class,
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -192,5 +209,12 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    // ✅ Tambahkan ini untuk memuat relasi student dan teacher
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['student', 'teacher', 'roles']);
     }
 }
