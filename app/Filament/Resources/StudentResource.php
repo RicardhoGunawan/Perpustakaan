@@ -134,13 +134,15 @@ class StudentResource extends Resource
                     ->searchable()
                     ->label('Nomor Telepon')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('member.member_number')
-                    ->label('No. Anggota')
-                    ->toggleable(isToggledHiddenByDefault: false),
-                Tables\Columns\IconColumn::make('member.is_active')
+                Tables\Columns\TextColumn::make('user.member.member_number')
+                    ->label('No. ID')
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->placeholder('Tidak ada'),
+                Tables\Columns\IconColumn::make('user.member.is_active')
                     ->boolean()
                     ->label('Status Anggota')
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->placeholder('-'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('class')
@@ -165,6 +167,13 @@ class StudentResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Action::make('viewCard')
+                    ->label('Lihat Kartu')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->visible(fn($record) => $record->user->member)
+                    ->url(fn($record) => route('member.card.show', $record->user->member->id))
+                    ->openUrlInNewTab(),
                 Action::make('createMembership')
                     ->label('Buat Kartu Anggota')
                     ->icon('heroicon-o-identification')
@@ -256,5 +265,6 @@ class StudentResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with(['user', 'user.member']);
+
     }
 }

@@ -1,33 +1,27 @@
-{{-- resources/views/pdf/member-card.blade.php --}}
 @php
     use SimpleSoftwareIO\QrCode\Facades\QrCode;
+    use Illuminate\Support\Str;
 @endphp
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kartu Anggota - {{ $student->full_name }}</title>
+    <title>Kartu Anggota Saya - {{ $student->full_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        /* ... CSS Styles Header, Body, Container, etc (sama seperti sebelumnya)... */
-        @page {
-            margin: 0;
-        }
-
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 10px;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
         }
 
         .card-container {
             width: 324px;
-            /* Sekitar 85.6mm */
-            /* Tingkatkan tinggi kartu sedikit jika perlu untuk QR Code */
             height: 214px;
-            /* Contoh: ditambah 10px */
             border: 1px solid #ccc;
             border-radius: 10px;
             padding: 15px;
@@ -39,7 +33,6 @@
             position: relative;
         }
 
-        /* ... CSS Header Table, Logo, Title ... */
         .card-header {
             margin-bottom: 10px;
             border-bottom: 1px solid #eee;
@@ -84,13 +77,11 @@
             color: #555;
         }
 
-        /* ... CSS Body, Photo, Details ... */
         .card-body {
             display: block;
             width: 100%;
             margin-top: 10px;
             flex-grow: 1;
-            /* Agar body mengisi ruang sebelum footer */
         }
 
         .photo-section {
@@ -131,7 +122,6 @@
             color: #333;
         }
 
-        /* --- START CSS BARU UNTUK QR CODE --- */
         .qrcode-section {
             position: absolute;
             bottom: 5px;
@@ -157,32 +147,39 @@
             color: #666;
         }
 
-        /* --- END CSS BARU UNTUK QR CODE --- */
-
         .card-footer {
             margin-top: auto;
-            /* Mendorong footer ke bawah jika card-body flex-grow */
             text-align: center;
             font-size: 9px;
             color: #777;
             border-top: 1px solid #eee;
             padding-top: 5px;
-            /* Beri sedikit padding bawah jika perlu */
-            /* padding-bottom: 5px; */
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 8px;
+            padding: 3px 6px;
+            border-radius: 3px;
         }
     </style>
 </head>
-
 <body>
 
+<div class="container">
     <div class="card-container">
-        {{-- Header with Logo and Title --}}
         <div class="card-header">
-            {{-- ... isi header table ... --}}
             <table class="header-table">
                 <tr>
                     <td class="logo-cell">
-                        <img src="{{ public_path('images/logo.png') }}" alt="Logo Sekolah" class="school-logo">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo Sekolah" class="school-logo">
                     </td>
                     <td class="title-cell">
                         <h1>KARTU ANGGOTA PERPUSTAKAAN</h1>
@@ -194,47 +191,57 @@
 
         <div class="card-body">
             <div class="photo-section">
-                {{-- ... img photo ... --}}
                 @if($student->profile_photo && Storage::disk('public')->exists($student->profile_photo))
-                    <img src="{{ public_path(Storage::url($student->profile_photo)) }}" alt="Foto Profil"
-                        class="profile-photo">
+                    <img src="{{ Storage::url($student->profile_photo) }}" alt="Foto Profil" class="profile-photo">
                 @else
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&color=7F9CF5&background=EBF4FF&size=90"
-                        alt="Foto Profil" class="profile-photo">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&color=7F9CF5&background=EBF4FF&size=90" 
+                         alt="Foto Profil" class="profile-photo">
                 @endif
             </div>
 
             <div class="details-section">
-                {{-- ... Info Items ... --}}
-                <div class="info-item"><label>No. Anggota:</label><span>{{ $member->member_number ?? 'N/A' }}</span>
-                </div>
+                <div class="info-item"><label>No. Anggota:</label><span>{{ $member->member_number ?? 'N/A' }}</span></div>
                 <div class="info-item"><label>Nama:</label><span>{{ $student->full_name }}</span></div>
                 <div class="info-item"><label>NIS:</label><span>{{ $student->nis }}</span></div>
                 <div class="info-item"><label>Kelas:</label><span>{{ $student->class }}</span></div>
-                <div class="info-item"><label>Tgl
-                        Lahir:</label><span>@if($student->date_of_birth){{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}@else
-                        N/A @endif</span></div>
+                <div class="info-item"><label>Tgl Lahir:</label><span>
+                    @if($student->date_of_birth)
+                        {{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}
+                    @else
+                        N/A
+                    @endif
+                </span></div>
                 <div class="info-item"><label>Alamat:</label><span>{{ Str::limit($student->address, 50) }}</span></div>
-
-
-
             </div>
         </div>
+
         <div class="qrcode-section">
             @if($member && $member->member_number)
-                <img
-                    src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(80)->margin(1)->generate(url('/member-card/' . $member->id))) }}">
+                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(80)->margin(1)->generate(url('/member-card/' . $member->id))) }}">
             @else
                 <div class="qrcode-placeholder">No QR</div>
             @endif
         </div>
 
+        <div class="status-badge badge {{ now()->gt($member->valid_until) ? 'bg-danger' : 'bg-success' }}">
+            {{ now()->gt($member->valid_until) ? 'KADALUARSA' : 'AKTIF' }}
+        </div>
+
         <div class="card-footer">
-            Berlaku Hingga:
-            {{ $member->valid_until ? \Carbon\Carbon::parse($member->valid_until)->translatedFormat('d F Y') : 'N/A' }}
+            Berlaku Hingga: {{ $member->valid_until ? \Carbon\Carbon::parse($member->valid_until)->translatedFormat('d F Y') : 'N/A' }}
         </div>
     </div>
 
-</body>
+    <div class="action-buttons">
+        <a href="{{ route('member.card.download') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download me-2"></i> Unduh Kartu PDF
+        </a>
+        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm ms-2">
+            <i class="bi bi-arrow-left me-2"></i> Kembali
+        </a>
+    </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

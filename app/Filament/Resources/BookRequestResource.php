@@ -31,36 +31,42 @@ class BookRequestResource extends Resource
                                 $users = User::whereHas('roles', function ($query) {
                                     $query->whereIn('name', ['guru']);
                                 })->get();
-                                
+
                                 $options = [];
                                 foreach ($users as $user) {
                                     if ($user->hasRole('guru') && $user->teacher) {
                                         $options[$user->id] = "[Guru] {$user->teacher->full_name} - {$user->teacher->subject}";
                                     }
                                 }
-                                
+
                                 return $options;
                             })
                             ->searchable()
-                            ->required(),
-                            
+                            ->required()
+                            ->default(function () {
+                                return auth()->id();
+                            })
+                            ->disabled(function () {
+                                // Jika yang login bukan super_admin, maka field akan disabled
+                                return !auth()->user()->hasRole('super_admin');
+                            }),
                         Forms\Components\TextInput::make('title')
                             ->label('Judul Buku')
                             ->required()
                             ->maxLength(255),
-                            
+
                         Forms\Components\TextInput::make('author')
                             ->label('Penulis')
                             ->maxLength(255),
-                            
+
                         Forms\Components\TextInput::make('publisher')
                             ->label('Penerbit')
                             ->maxLength(255),
-                            
+
                         Forms\Components\Textarea::make('description')
                             ->label('Deskripsi')
                             ->columnSpanFull(),
-                            
+
                         Forms\Components\Select::make('status')
                             ->label('Status')
                             ->options([
@@ -70,11 +76,11 @@ class BookRequestResource extends Resource
                             ])
                             ->default('pending')
                             ->required(),
-                            
+
                         Forms\Components\Textarea::make('admin_notes')
                             ->label('Catatan Admin')
                             ->columnSpanFull(),
-                            
+
                         Forms\Components\DatePicker::make('processed_at')
                             ->label('Tanggal Diproses')
                             ->nullable(),
@@ -89,28 +95,28 @@ class BookRequestResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('user.teacher.full_name')
                     ->label('Pemohon')
                     ->sortable()
                     ->searchable()
-                    ->description(fn (BookRequest $record) => $record->user->teacher->subject ?? ''),
-                    
+                    ->description(fn(BookRequest $record) => $record->user->teacher->subject ?? ''),
+
                 Tables\Columns\TextColumn::make('title')
                     ->label('Judul Buku')
                     ->searchable()
                     ->limit(30),
-                    
+
                 Tables\Columns\TextColumn::make('author')
                     ->label('Penulis')
                     ->searchable()
                     ->toggleable(),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal Request')
                     ->dateTime()
                     ->sortable(),
-                    
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')
                     ->colors([
@@ -118,7 +124,7 @@ class BookRequestResource extends Resource
                         'success' => 'approved',
                         'danger' => 'rejected',
                     ]),
-                    
+
                 Tables\Columns\TextColumn::make('processed_at')
                     ->label('Tanggal Diproses')
                     ->date()
@@ -133,7 +139,7 @@ class BookRequestResource extends Resource
                         'rejected' => 'Ditolak',
                     ])
                     ->label('Status'),
-                    
+
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('created_from')
@@ -145,11 +151,11 @@ class BookRequestResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date)
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date)
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date)
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date)
                             );
                     }),
             ])
@@ -166,14 +172,14 @@ class BookRequestResource extends Resource
                 Tables\Actions\CreateAction::make(),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             // Tambahkan relasi jika diperlukan
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
