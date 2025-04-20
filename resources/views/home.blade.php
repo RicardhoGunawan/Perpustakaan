@@ -24,41 +24,41 @@
                 </div>
                 <div class="col-lg-5 d-none d-lg-block">
                     <!-- <div class="hero-card">
-                                <div class="card border-0 shadow hero-stats-card">
-                                    <div class="card-body p-4">
-                                        <div class="row g-4">
-                                            <div class="col-6">
-                                                <div class="text-center">
-                                                    <i class="fas fa-book-open fa-2x text-primary mb-2"></i>
-                                                    <h2 class="mb-1">{{ $totalBooks ?? '1000+' }}</h2>
-                                                    <p class="mb-0 text-muted">Judul Buku</p>
+                                    <div class="card border-0 shadow hero-stats-card">
+                                        <div class="card-body p-4">
+                                            <div class="row g-4">
+                                                <div class="col-6">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-book-open fa-2x text-primary mb-2"></i>
+                                                        <h2 class="mb-1">{{ $totalBooks ?? '1000+' }}</h2>
+                                                        <p class="mb-0 text-muted">Judul Buku</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="text-center">
-                                                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                                                    <h2 class="mb-1">{{ $activeMembers ?? '500+' }}</h2>
-                                                    <p class="mb-0 text-muted">Anggota Aktif</p>
+                                                <div class="col-6">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                                        <h2 class="mb-1">{{ $activeMembers ?? '500+' }}</h2>
+                                                        <p class="mb-0 text-muted">Anggota Aktif</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="text-center">
-                                                    <i class="fas fa-list-alt fa-2x text-primary mb-2"></i>
-                                                    <h2 class="mb-1">{{ count($categories) }}</h2>
-                                                    <p class="mb-0 text-muted">Kategori</p>
+                                                <div class="col-6">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-list-alt fa-2x text-primary mb-2"></i>
+                                                        <h2 class="mb-1">{{ count($categories) }}</h2>
+                                                        <p class="mb-0 text-muted">Kategori</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="text-center">
-                                                    <i class="fas fa-sync-alt fa-2x text-primary mb-2"></i>
-                                                    <h2 class="mb-1">{{ $activeLoans ?? '100+' }}</h2>
-                                                    <p class="mb-0 text-muted">Peminjaman</p>
+                                                <div class="col-6">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-sync-alt fa-2x text-primary mb-2"></i>
+                                                        <h2 class="mb-1">{{ $activeLoans ?? '100+' }}</h2>
+                                                        <p class="mb-0 text-muted">Peminjaman</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div> -->
+                                </div> -->
                 </div>
             </div>
         </div>
@@ -108,7 +108,7 @@
                 <p class="text-muted">Koleksi buku-buku terbaru yang telah ditambahkan ke perpustakaan kami</p>
             </div>
 
-            @foreach($latestBooks as $book)
+            @foreach ($latestBooks as $book)
                 <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
                     <div class="card h-100 shadow-sm border-0 position-relative hover-shadow transition">
 
@@ -159,46 +159,71 @@
 
             <!-- Kategori -->
             <div class="row g-4">
-                @foreach($categories as $category)
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <a href="{{ route('books.index', ['category' => $category]) }}" class="text-decoration-none">
-                                    <div class="card h-100 border-0 shadow-sm category-card transition-hover">
-                                        <div class="card-body p-4">
-                                            <!-- Ikon Kategori -->
-                                            <div class="category-icon mb-3">
-                                                @php
-                                                    $iconMap = [
-                                                        'fiksi' => ['icon' => 'fa-book-open', 'color' => 'text-primary', 'bar' => '#0d6efd'],
-                                                        'non-fiksi' => ['icon' => 'fa-landmark', 'color' => 'text-success', 'bar' => '#198754'],
-                                                        'pendidikan' => ['icon' => 'fa-graduation-cap', 'color' => 'text-info', 'bar' => '#0dcaf0'],
-                                                        'teknologi' => ['icon' => 'fa-laptop-code', 'color' => 'text-danger', 'bar' => '#dc3545'],
-                                                        'bisnis' => ['icon' => 'fa-chart-line', 'color' => 'text-warning', 'bar' => '#ffc107'],
-                                                        'sastra' => ['icon' => 'fa-feather-alt', 'color' => 'text-secondary', 'bar' => '#6c757d'],
-                                                    ];
-                                                    $slug = strtolower($category);
-                                                    $icon = $iconMap[$slug]['icon'] ?? 'fa-book';
-                                                    $color = $iconMap[$slug]['color'] ?? 'text-primary';
-                                                    $barColor = $iconMap[$slug]['bar'] ?? '#0d6efd';
-                                                @endphp
-                                                <i class="fas {{ $icon }} fa-2x {{ $color }}"></i>
-                                            </div>
-
-                                            <!-- Judul dan Jumlah -->
-                                            <h5 class="card-title fw-bold">{{ $category }}</h5>
-                                            <p class="card-text text-muted">{{ $categoryCounts[$category] ?? 0 }} buku tersedia</p>
-
-                                            <!-- CTA -->
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="small text-primary">Lihat semua</span>
-                                                <i class="fas fa-arrow-right text-primary"></i>
-                                            </div>
-                                        </div>
-
-                                        <!-- Bar Indikator Kategori -->
-                                        <div class="category-indicator" style="height: 4px; background-color: {{ $barColor }};"></div>
+                @foreach ($categories as $category)
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="{{ route('books.index', ['category' => $category]) }}" class="text-decoration-none">
+                            <div class="card h-100 border-0 shadow-sm category-card transition-hover">
+                                <div class="card-body p-4">
+                                    <!-- Ikon Kategori -->
+                                    <div class="category-icon mb-3">
+                                        @php
+                                            $iconMap = [
+                                                'fiksi' => [
+                                                    'icon' => 'fa-book-open',
+                                                    'color' => 'text-primary',
+                                                    'bar' => '#0d6efd',
+                                                ],
+                                                'non-fiksi' => [
+                                                    'icon' => 'fa-landmark',
+                                                    'color' => 'text-success',
+                                                    'bar' => '#198754',
+                                                ],
+                                                'pendidikan' => [
+                                                    'icon' => 'fa-graduation-cap',
+                                                    'color' => 'text-info',
+                                                    'bar' => '#0dcaf0',
+                                                ],
+                                                'teknologi' => [
+                                                    'icon' => 'fa-laptop-code',
+                                                    'color' => 'text-danger',
+                                                    'bar' => '#dc3545',
+                                                ],
+                                                'bisnis' => [
+                                                    'icon' => 'fa-chart-line',
+                                                    'color' => 'text-warning',
+                                                    'bar' => '#ffc107',
+                                                ],
+                                                'sastra' => [
+                                                    'icon' => 'fa-feather-alt',
+                                                    'color' => 'text-secondary',
+                                                    'bar' => '#6c757d',
+                                                ],
+                                            ];
+                                            $slug = strtolower($category);
+                                            $icon = $iconMap[$slug]['icon'] ?? 'fa-book';
+                                            $color = $iconMap[$slug]['color'] ?? 'text-primary';
+                                            $barColor = $iconMap[$slug]['bar'] ?? '#0d6efd';
+                                        @endphp
+                                        <i class="fas {{ $icon }} fa-2x {{ $color }}"></i>
                                     </div>
-                                </a>
+
+                                    <!-- Judul dan Jumlah -->
+                                    <h5 class="card-title fw-bold">{{ $category }}</h5>
+                                    <p class="card-text text-muted">{{ $categoryCounts[$category] ?? 0 }} buku tersedia</p>
+
+                                    <!-- CTA -->
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="small text-primary">Lihat semua</span>
+                                        <i class="fas fa-arrow-right text-primary"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Bar Indikator Kategori -->
+                                <div class="category-indicator"
+                                    style="height: 4px; background-color: {{ $barColor }};"></div>
                             </div>
+                        </a>
+                    </div>
                 @endforeach
             </div>
         </div>

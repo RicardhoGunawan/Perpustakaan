@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ProfileController;
@@ -69,11 +68,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/teacher', [ProfileController::class, 'updateTeacher'])->name('teacher.update');
     });
 
-    // Member card
     Route::prefix('member-card')->name('member.card.')->group(function () {
-        Route::get('/{id}', [MemberCardController::class, 'show'])->name('show');
+        Route::get('/download', [MemberCardController::class, 'downloadCard'])->name('download');
         Route::get('/my-card', [MemberCardController::class, 'myCard'])->name('my');
-        Route::get('/download-card', [MemberCardController::class, 'downloadCard'])->name('download');
+        Route::get('/{id}', [MemberCardController::class, 'show'])->name('show');
     });
 
 });

@@ -195,7 +195,7 @@
         <div class="card-body">
             <div class="photo-section">
                 {{-- ... img photo ... --}}
-                @if($student->profile_photo && Storage::disk('public')->exists($student->profile_photo))
+                @if ($student->profile_photo && Storage::disk('public')->exists($student->profile_photo))
                     <img src="{{ public_path(Storage::url($student->profile_photo)) }}" alt="Foto Profil"
                         class="profile-photo">
                 @else
@@ -212,8 +212,13 @@
                 <div class="info-item"><label>NIS:</label><span>{{ $student->nis }}</span></div>
                 <div class="info-item"><label>Kelas:</label><span>{{ $student->class }}</span></div>
                 <div class="info-item"><label>Tgl
-                        Lahir:</label><span>@if($student->date_of_birth){{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}@else
-                        N/A @endif</span></div>
+                        Lahir:</label><span>
+                        @if ($student->date_of_birth)
+                            {{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}
+                        @else
+                            N/A
+                        @endif
+                    </span></div>
                 <div class="info-item"><label>Alamat:</label><span>{{ Str::limit($student->address, 50) }}</span></div>
 
 
@@ -221,7 +226,7 @@
             </div>
         </div>
         <div class="qrcode-section">
-            @if($member && $member->member_number)
+            @if ($member && $member->member_number)
                 <img
                     src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(80)->margin(1)->generate(url('/member-card/' . $member->id))) }}">
             @else

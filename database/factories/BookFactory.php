@@ -1,24 +1,31 @@
 <?php
+
 namespace Database\Factories;
-use App\Models\Book;
+
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BookFactory extends Factory
 {
-    protected $model = Book::class;
-
     public function definition(): array
     {
+        $categories = ['Matematika', 'Fisika', 'Kimia', 'Biologi', 'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'Ekonomi', 'Geografi', 'Sosiologi'];
+        $kelas = ['10', '11', '12'];
+        $publisherList = ['Erlangga', 'Yudhistira', 'Gramedia', 'Quadra', 'Intan Pariwara', 'Ganeca Exact'];
+
+        $category = $this->faker->randomElement($categories);
+        $class = $this->faker->randomElement($kelas);
+        $title = "{$category} SMA Kelas {$class}";
+
         return [
-            'title' => $this->faker->sentence(3),
-            'author' => $this->faker->name(),
-            'isbn' => $this->faker->isbn13(),
-            'publisher' => $this->faker->company(),
-            'publication_year' => $this->faker->year(),
-            'description' => $this->faker->paragraph(),
-            'stock' => $this->faker->numberBetween(5, 20),
-            'cover_image' => $this->faker->imageUrl(300, 400, 'books', true),
-            'category' => $this->faker->word(),
+            'title' => $title,
+            'author' => $this->faker->name,
+            'isbn' => $this->faker->isbn13,
+            'publisher' => $this->faker->randomElement($publisherList),
+            'publication_year' => $this->faker->numberBetween(2015, 2023),
+            'description' => "Buku pelajaran {$category} untuk siswa SMA kelas {$class}.",
+            'stock' => $this->faker->numberBetween(5, 30),
+            'cover_image' => $this->faker->imageUrl(300, 400, 'education', true),
+            'category' => $category,
         ];
     }
 }

@@ -42,21 +42,61 @@
         }
 
         /* Navbar styling */
+        /* Navbar styling - Enhanced for better responsiveness */
+        .fixed-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1030;
+            transform: translateZ(0);
+            will-change: transform;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease;
+            min-height: 60px;
+            /* Changed from fixed height to min-height for better mobile support */
+        }
+
+        /* Spacer for navbar */
+        .navbar-spacer {
+            height: 60px;
+        }
+
+        /* Avoid flicker when scrolling */
+        body {
+            overflow-anchor: none;
+        }
+
+        /* Navbar scroll behavior */
+        .scroll-down .fixed-navbar {
+            transform: translateY(-100%);
+        }
+
+        .scroll-up .fixed-navbar {
+            transform: translateY(0);
+        }
+
+        /* Ensure dropdowns remain visible */
+        .dropdown-menu {
+            transform: none !important;
+        }
+
         .navbar {
-            padding: 1rem 0;
+            padding: 0.5rem 0;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
 
         .navbar-scrolled {
-            padding: 0.5rem 0;
+            padding: 0.25rem 0;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
 
         .navbar-brand {
             font-weight: 700;
             color: var(--primary-color);
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             transition: color 0.3s ease;
         }
 
@@ -93,6 +133,91 @@
         .nav-link.active::after {
             width: 70%;
         }
+
+        /* Mobile optimizations */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                max-height: calc(100vh - 60px);
+                overflow-y: auto;
+                padding-bottom: 1rem;
+            }
+
+            .navbar .nav-link {
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            .navbar .nav-link::after {
+                display: none;
+                /* Remove the underline effect on mobile */
+            }
+
+            .navbar .nav-link.active {
+                background-color: rgba(var(--bs-primary-rgb), 0.1);
+                border-radius: 0.25rem;
+            }
+
+            .user-dropdown .dropdown-menu {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+
+            /* Enhanced styles for mobile toggle button */
+            .navbar-toggler {
+                padding: 0.25rem 0.5rem;
+                font-size: 1rem;
+            }
+
+            .navbar-toggler:focus {
+                box-shadow: none;
+            }
+
+            /* ✅ Tambahan: Responsive dropdown akun di mobile */
+            .user-dropdown .dropdown-menu-mobile-show {
+                position: absolute !important;
+                top: 100% !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw;
+                margin-top: 0.25rem;
+                border-radius: 0;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                z-index: 1050;
+            }
+
+            .user-dropdown .dropdown-menu-mobile-show .dropdown-item {
+                padding: 1rem;
+                font-size: 1.1rem;
+            }
+
+            .user-dropdown>a.btn {
+                width: 100%;
+                justify-content: center;
+                font-size: 1rem;
+            }
+        }
+
+        /* Add JS to toggle the fixed-navbar visibility while scrolling */
+        @media (min-width: 992px) {
+            .dropdown-menu {
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+                border: none;
+                animation: fadeIn 0.2s ease;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
+
 
         /* Content main area */
         .content {
@@ -357,47 +482,79 @@
         <div class="spinner"></div>
     </div>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-navbar">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" height="30" class="me-2"> {{-- Logo --}}
-                <span>Perpustakaan</span>
+            <!-- Logo and brand -->
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" height="30" class="me-2">
+                <span class="d-sm-inline">Perpustakaan</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <!-- Mobile search toggle -->
+            <div class="d-lg-none ms-auto me-2">
+                <button class="btn btn-sm btn-outline-secondary border-0" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mobileSearch" aria-expanded="false">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- Hamburger menu -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
+            <!-- Mobile search bar (collapsed by default) -->
+            <div class="collapse w-100 mt-2 mb-2 d-lg-none" id="mobileSearch">
+                <form action="{{ route('books.index') }}" method="GET" class="d-flex w-100">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" placeholder="Cari buku..."
+                            name="search" value="{{ request('search') }}">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Main navbar content -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}"
-                            href="{{ route('home') }}">Beranda</a>
+                        <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                            <i class="fas fa-home d-lg-none me-2"></i>Beranda
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ Request::routeIs('books.*') ? 'active' : '' }}"
-                            href="{{ route('books.index') }}">Katalog Buku</a>
+                            href="{{ route('books.index') }}">
+                            <i class="fas fa-book d-lg-none me-2"></i>Katalog Buku
+                        </a>
                     </li>
 
                     @auth
                         <li class="nav-item">
                             <a class="nav-link {{ Request::routeIs('loans.*') ? 'active' : '' }}"
-                                href="{{ route('loans.index') }}">Peminjaman Saya</a>
+                                href="{{ route('loans.index') }}">
+                                <i class="fas fa-book-reader d-lg-none me-2"></i>Peminjaman Saya
+                            </a>
                         </li>
 
-                        @auth
-                            @if(Auth::user()->hasRole('guru'))
-                                <li class="nav-item">
-                                    <a class="nav-link {{ Request::routeIs('book-requests.index') ? 'active' : '' }}"
-                                        href="{{ route('book-requests.index') }}">Daftar Permintaan Buku</a>
-                                </li>
-                            @endif
-                        @endauth
+                        @if (Auth::user()->hasRole('guru'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::routeIs('book-requests.index') ? 'active' : '' }}"
+                                    href="{{ route('book-requests.index') }}">
+                                    <i class="fas fa-clipboard-list d-lg-none me-2"></i>Daftar Permintaan Buku
+                                </a>
+                            </li>
+                        @endif
                     @endauth
                 </ul>
 
-                <div class="d-flex align-items-center">
-                    <form class="d-none d-md-flex me-3" action="{{ route('books.index') }}" method="GET">
+                <!-- Desktop search form -->
+                <div class="d-none d-lg-flex me-3">
+                    <form action="{{ route('books.index') }}" method="GET" class="d-flex">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Cari buku..." name="search"
                                 value="{{ request('search') }}">
@@ -406,15 +563,19 @@
                             </button>
                         </div>
                     </form>
+                </div>
 
+                <!-- User menu -->
+                <div class="mt-3 mt-lg-0">
                     @auth
                         <div class="dropdown user-dropdown">
-                            <a class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" href="#"
-                                role="button" data-bs-toggle="dropdown">
+                            <a class="btn btn-outline-primary dropdown-toggle d-flex align-items-center w-100 w-sm-auto"
+                                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-2"></i>
-                                <span>{{ Auth::user()->name }}</span>
+                                <span class="d-none d-sm-inline">{{ Auth::user()->name }}</span>
+                                <span class="d-inline d-sm-none">Akun</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 dropdown-menu-mobile-show">
                                 <li>
                                     <a class="dropdown-item" href="{{ route('profile.index') }}">
                                         <i class="fas fa-user me-2 text-primary"></i> Profil Saya
@@ -439,21 +600,26 @@
                             </ul>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary me-2">
-                            <i class="fas fa-sign-in-alt me-1"></i> Masuk
-                        </a>
-                        <a href="{{ route('register') }}" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-1"></i> Daftar
-                        </a>
+                        <div class="d-grid d-lg-flex gap-2">
+                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                <span>Masuk</span>
+                            </a>
+                            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-user-plus me-1"></i>
+                                <span>Daftar</span>
+                            </a>
+                        </div>
                     @endauth
                 </div>
             </div>
         </div>
     </nav>
+    <div class="navbar-spacer"></div>
 
     <!-- Main Content -->
     <main class="content">
-        @if(session('success'))
+        @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
                 <div class="container">
                     <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
@@ -462,7 +628,7 @@
             </div>
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
                 <div class="container">
                     <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
@@ -533,7 +699,7 @@
     <!-- Custom script -->
     <script>
         // Initialize AOS animation
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             // Initialize AOS
             AOS.init({
                 duration: 800,
@@ -542,7 +708,7 @@
             });
 
             // Preloader
-            window.addEventListener('load', function () {
+            window.addEventListener('load', function() {
                 const preloader = document.querySelector('.preloader');
                 preloader.classList.add('fade-out');
                 setTimeout(() => {
@@ -550,37 +716,96 @@
                 }, 500);
             });
 
-            // Navbar scroll effect
+            // Variables for the scroll detection
+            let lastScrollTop = 0;
+            const fixedNavbar = document.querySelector('.fixed-navbar');
             const navbar = document.querySelector('.navbar');
-            window.addEventListener('scroll', function () {
-                if (window.scrollY > 100) {
+            const scrollThreshold = 10;
+
+            // Handle scroll events
+            window.addEventListener('scroll', function() {
+                let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+                // If scrolled down and past the threshold - hide navbar
+                if (currentScroll > lastScrollTop && currentScroll > scrollThreshold) {
+                    document.body.classList.add('scroll-down');
+                    document.body.classList.remove('scroll-up');
+                }
+                // If scrolled up - show navbar
+                else if (currentScroll < lastScrollTop) {
+                    document.body.classList.remove('scroll-down');
+                    document.body.classList.add('scroll-up');
+                }
+
+                // Add scrolled class for styling
+                if (currentScroll > 100) {
                     navbar.classList.add('navbar-scrolled');
+                    if (fixedNavbar) fixedNavbar.classList.add('navbar-scrolled');
                 } else {
                     navbar.classList.remove('navbar-scrolled');
+                    if (fixedNavbar) fixedNavbar.classList.remove('navbar-scrolled');
                 }
+
+                lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // For Mobile or negative scrolling
+            }, {
+                passive: true
             });
+
+            // Close the mobile menu when a link is clicked
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            const menuToggle = document.getElementById('navbarNav');
+
+            if (menuToggle) {
+                const bsCollapse = new bootstrap.Collapse(menuToggle, {
+                    toggle: false
+                });
+
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        if (menuToggle.classList.contains('show')) {
+                            bsCollapse.toggle();
+                        }
+                    });
+                });
+            }
+
+            // Close mobile search when clicking outside
+            const mobileSearch = document.getElementById('mobileSearch');
+            if (mobileSearch) {
+                document.addEventListener('click', function(event) {
+                    const isClickInside = mobileSearch.contains(event.target) ||
+                        event.target.getAttribute('data-bs-target') === '#mobileSearch';
+
+                    if (!isClickInside && mobileSearch.classList.contains('show')) {
+                        const bsSearchCollapse = new bootstrap.Collapse(mobileSearch);
+                        bsSearchCollapse.hide();
+                    }
+                });
+            }
 
             // Back to top button
             const backToTopButton = document.getElementById('backToTop');
-            window.addEventListener('scroll', function () {
-                if (window.scrollY > 300) {
-                    backToTopButton.classList.add('show');
-                } else {
-                    backToTopButton.classList.remove('show');
-                }
-            });
-
-            backToTopButton.addEventListener('click', function (e) {
-                e.preventDefault();
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('show');
+                    } else {
+                        backToTopButton.classList.remove('show');
+                    }
                 });
-            });
+
+                backToTopButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
 
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });

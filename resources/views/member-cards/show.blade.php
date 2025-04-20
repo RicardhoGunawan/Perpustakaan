@@ -4,6 +4,7 @@
 @endphp
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -174,77 +175,83 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="card-container">
-        <div class="card-header">
-            <table class="header-table">
-                <tr>
-                    <td class="logo-cell">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo Sekolah" class="school-logo">
-                    </td>
-                    <td class="title-cell">
-                        <h1>KARTU ANGGOTA PERPUSTAKAAN</h1>
-                        <p>SMA NEGERI TARUNA KASUARI NUSANTARA</p>
-                    </td>
-                </tr>
-            </table>
-        </div>
+    <div class="container">
+        <div class="card-container">
+            <div class="card-header">
+                <table class="header-table">
+                    <tr>
+                        <td class="logo-cell">
+                            <img src="{{ asset('images/logo.png') }}" alt="Logo Sekolah" class="school-logo">
+                        </td>
+                        <td class="title-cell">
+                            <h1>KARTU ANGGOTA PERPUSTAKAAN</h1>
+                            <p>SMA NEGERI TARUNA KASUARI NUSANTARA</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-        <div class="card-body">
-            <div class="photo-section">
-                @if($student->profile_photo && Storage::disk('public')->exists($student->profile_photo))
-                    <img src="{{ Storage::url($student->profile_photo) }}" alt="Foto Profil" class="profile-photo">
+            <div class="card-body">
+                <div class="photo-section">
+                    @if ($student->profile_photo && Storage::disk('public')->exists($student->profile_photo))
+                        <img src="{{ Storage::url($student->profile_photo) }}" alt="Foto Profil" class="profile-photo">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&color=7F9CF5&background=EBF4FF&size=90"
+                            alt="Foto Profil" class="profile-photo">
+                    @endif
+                </div>
+
+                <div class="details-section">
+                    <div class="info-item"><label>No. Anggota:</label><span>{{ $member->member_number ?? 'N/A' }}</span>
+                    </div>
+                    <div class="info-item"><label>Nama:</label><span>{{ $student->full_name }}</span></div>
+                    <div class="info-item"><label>NIS:</label><span>{{ $student->nis }}</span></div>
+                    <div class="info-item"><label>Kelas:</label><span>{{ $student->class }}</span></div>
+                    <div class="info-item"><label>Tgl Lahir:</label><span>
+                            @if ($student->date_of_birth)
+                                {{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}
+                            @else
+                                N/A
+                            @endif
+                        </span></div>
+                    <div class="info-item"><label>Alamat:</label><span>{{ Str::limit($student->address, 50) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qrcode-section">
+                @if ($member && $member->member_number)
+                    <img
+                        src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(80)->margin(1)->generate(url('/member-card/' . $member->id))) }}">
                 @else
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($student->full_name) }}&color=7F9CF5&background=EBF4FF&size=90" 
-                         alt="Foto Profil" class="profile-photo">
+                    <div class="qrcode-placeholder">No QR</div>
                 @endif
             </div>
 
-            <div class="details-section">
-                <div class="info-item"><label>No. Anggota:</label><span>{{ $member->member_number ?? 'N/A' }}</span></div>
-                <div class="info-item"><label>Nama:</label><span>{{ $student->full_name }}</span></div>
-                <div class="info-item"><label>NIS:</label><span>{{ $student->nis }}</span></div>
-                <div class="info-item"><label>Kelas:</label><span>{{ $student->class }}</span></div>
-                <div class="info-item"><label>Tgl Lahir:</label><span>
-                    @if($student->date_of_birth)
-                        {{ \Carbon\Carbon::parse($student->date_of_birth)->translatedFormat('d F Y') }}
-                    @else
-                        N/A
-                    @endif
-                </span></div>
-                <div class="info-item"><label>Alamat:</label><span>{{ Str::limit($student->address, 50) }}</span></div>
+            <div class="status-badge badge {{ now()->gt($member->valid_until) ? 'bg-danger' : 'bg-success' }}">
+                {{ now()->gt($member->valid_until) ? 'KADALUARSA' : 'AKTIF' }}
+            </div>
+
+            <div class="card-footer">
+                Berlaku Hingga:
+                {{ $member->valid_until ? \Carbon\Carbon::parse($member->valid_until)->translatedFormat('d F Y') : 'N/A' }}
             </div>
         </div>
 
-        <div class="qrcode-section">
-            @if($member && $member->member_number)
-                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(80)->margin(1)->generate(url('/member-card/' . $member->id))) }}">
-            @else
-                <div class="qrcode-placeholder">No QR</div>
-            @endif
-        </div>
-
-        <div class="status-badge badge {{ now()->gt($member->valid_until) ? 'bg-danger' : 'bg-success' }}">
-            {{ now()->gt($member->valid_until) ? 'KADALUARSA' : 'AKTIF' }}
-        </div>
-
-        <div class="card-footer">
-            Berlaku Hingga: {{ $member->valid_until ? \Carbon\Carbon::parse($member->valid_until)->translatedFormat('d F Y') : 'N/A' }}
+        <div class="action-buttons">
+            <a href="{{ route('member.card.download') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-download me-2"></i> Unduh Kartu PDF
+            </a>
+            <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm ms-2">
+                <i class="bi bi-arrow-left me-2"></i> Kembali
+            </a>
         </div>
     </div>
 
-    <div class="action-buttons">
-        <a href="{{ route('member.card.download') }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-download me-2"></i> Unduh Kartu PDF
-        </a>
-        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm ms-2">
-            <i class="bi bi-arrow-left me-2"></i> Kembali
-        </a>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
