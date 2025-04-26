@@ -35,7 +35,7 @@ Auth::routes();
 // Book browsing (public)
 Route::prefix('books')->name('books.')->group(function () {
     Route::get('/', [BookController::class, 'index'])->name('index');
-    Route::get('/{book}', [BookController::class, 'show'])->name('show');
+    Route::get('/{book:slug}', [BookController::class, 'show'])->name('show');
 });
 
 // Routes for authenticated users only
@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [LoanController::class, 'index'])->name('index'); // 👈 INI YANG HILANG
         Route::post('/', [LoanController::class, 'store'])->name('store');
         Route::put('/{loan}/extend', [LoanController::class, 'extend'])->name('extend');
+        Route::delete('/{loan}', [LoanController::class, 'cancel'])->name('cancel');
 
     });
 

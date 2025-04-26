@@ -1,5 +1,4 @@
 <?php
-// app/Filament/Resources/BookLoanResource.php
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookLoanResource\Pages;
@@ -15,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class BookLoanResource extends Resource
 {
@@ -135,16 +135,24 @@ class BookLoanResource extends Resource
                         Forms\Components\Select::make('status')
                             ->label('Status')
                             ->options([
+                                'menunggu_persetujuan' => 'Menunggu Persetujuan',
+                                'ditolak' => 'Ditolak',
                                 'dipinjam' => 'Dipinjam',
                                 'dikembalikan' => 'Dikembalikan',
                                 'terlambat' => 'Terlambat',
                             ])
-                            ->default('dipinjam')
+                            ->default('menunggu_persetujuan')
                             ->required(),
 
                         Forms\Components\Textarea::make('notes')
                             ->label('Catatan')
                             ->columnSpanFull(),
+                            
+                        Forms\Components\Textarea::make('admin_notes')
+                            ->label('Catatan Admin')
+                            ->helperText('Catatan ini akan ditampilkan kepada peminjam')
+                            ->columnSpanFull()
+                            ->visible(fn (string $context): bool => auth()->user()->hasRole(['super_admin', 'admin']))
                     ])->columns(2),
             ]);
     }
@@ -203,14 +211,28 @@ class BookLoanResource extends Resource
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')
                     ->colors([
+                        'warning' => 'menunggu_persetujuan',
+                        'danger' => ['ditolak', 'terlambat'],
                         'primary' => 'dipinjam',
                         'success' => 'dikembalikan',
-                        'danger' => 'terlambat',
                     ]),
+                    
+                Tables\Columns\TextColumn::make('approved_at')
+                    ->label('Disetujui Pada')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                    
+                Tables\Columns\TextColumn::make('approver.name')
+                    ->label('Disetujui Oleh')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
+                        'menunggu_persetujuan' => 'Menunggu Persetujuan',
+                        'ditolak' => 'Ditolak',
                         'dipinjam' => 'Dipinjam',
                         'dikembalikan' => 'Dikembalikan',
                         'terlambat' => 'Terlambat',
@@ -252,9 +274,76 @@ class BookLoanResource extends Resource
                         });
                     })
                     ->label('Tipe Peminjam'),
+                    
+                Tables\Filters\SelectFilter::make('approval')
+                    ->options([
+                        'pending' => 'Menunggu Persetujuan',
+                        'approved' => 'Telah Disetujui',
+                        'rejected' => 'Ditolak',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+                        
+                        if ($data['value'] === 'pending') {
+                            return $query->where('status', 'menunggu_persetujuan');
+                        } elseif ($data['value'] === 'approved') {
+                            return $query->where('status', 'dipinjam')->whereNotNull('approved_at');
+                        } elseif ($data['value'] === 'rejected') {
+                            return $query->where('status', 'ditolak');
+                        }
+                        
+                        return $query;
+                    })
+                    ->label('Status Persetujuan'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                
+                // Approve book loan action (for admins only)
+                Tables\Actions\Action::make('approve')
+                    ->label('Setujui')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->visible(fn(BookLoan $record) => 
+                        $record->status === 'menunggu_persetujuan' && 
+                        auth()->user()->hasRole(['super_admin', 'admin']))
+                    ->form([
+                        Forms\Components\Textarea::make('admin_notes')
+                            ->label('Catatan Admin')
+                            ->placeholder('Catatan untuk peminjam (opsional)')
+                    ])
+                    ->action(function (BookLoan $record, array $data) {
+                        $record->update([
+                            'status' => 'dipinjam',
+                            'approved_at' => now(),
+                            'approved_by' => auth()->id(),
+                            'admin_notes' => $data['admin_notes'] ?? null,
+                        ]);
+                    }),
+                    
+                // Reject book loan action (for admins only)
+                Tables\Actions\Action::make('reject')
+                    ->label('Tolak')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->visible(fn(BookLoan $record) => 
+                        $record->status === 'menunggu_persetujuan' && 
+                        auth()->user()->hasRole(['super_admin', 'admin']))
+                    ->form([
+                        Forms\Components\Textarea::make('admin_notes')
+                            ->label('Alasan Penolakan')
+                            ->placeholder('Berikan alasan penolakan peminjaman buku')
+                            ->required()
+                    ])
+                    ->action(function (BookLoan $record, array $data) {
+                        $record->update([
+                            'status' => 'ditolak',
+                            'admin_notes' => $data['admin_notes'],
+                        ]);
+                    }),
+                
                 Tables\Actions\Action::make('return')
                     ->label('Kembalikan Buku')
                     ->icon('heroicon-o-check-circle')
@@ -270,6 +359,21 @@ class BookLoanResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('approveSelected')
+                        ->label('Setujui Peminjaman Terpilih')
+                        ->icon('heroicon-o-check')
+                        ->action(function ($records) {
+                            foreach ($records as $record) {
+                                if ($record->status === 'menunggu_persetujuan') {
+                                    $record->update([
+                                        'status' => 'dipinjam',
+                                        'approved_at' => now(),
+                                        'approved_by' => auth()->id(),
+                                    ]);
+                                }
+                            }
+                        })
+                        ->visible(fn() => auth()->user()->hasRole(['super_admin', 'admin'])),
                     Tables\Actions\BulkAction::make('returnSelected')
                         ->label('Kembalikan Buku Terpilih')
                         ->icon('heroicon-o-check-circle')
@@ -305,7 +409,14 @@ class BookLoanResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->with(['user', 'book', 'user.student', 'user.teacher', 'user.roles']);
+            
+        // Non-admin users only see their own loans
+        if (!auth()->user()->hasRole(['super_admin', 'admin'])) {
+            $query->where('user_id', auth()->id());
+        }
+        
+        return $query;
     }
 }

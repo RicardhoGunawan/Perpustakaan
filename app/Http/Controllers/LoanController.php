@@ -57,24 +57,28 @@ class LoanController extends Controller
             return back()->with('error', 'Jumlah buku yang tersedia tidak mencukupi.');
         }
 
-        // Check if user already has an active loan for this book
+        // Check if user already has a pending or active loan for this book
         $existingLoan = BookLoan::where('user_id', Auth::id())
             ->where('book_id', $request->book_id)
-            ->where('status', 'dipinjam')
+            ->whereIn('status', ['menunggu_persetujuan', 'dipinjam'])
             ->first();
 
         if ($existingLoan) {
-            return back()->with('error', 'Anda sudah meminjam buku ini dan belum mengembalikannya.');
+            if ($existingLoan->status === 'menunggu_persetujuan') {
+                return back()->with('error', 'Anda sudah mengajukan peminjaman untuk buku ini dan masih menunggu persetujuan.');
+            } else {
+                return back()->with('error', 'Anda sudah meminjam buku ini dan belum mengembalikannya.');
+            }
         }
 
-        // Create loan
+        // Create loan request
         $loan = new BookLoan();
         $loan->user_id = Auth::id();
         $loan->book_id = $request->book_id;
         $loan->quantity = $request->quantity;
         $loan->loan_date = now();
         $loan->due_date = $request->due_date;
-        $loan->status = 'dipinjam';
+        $loan->status = 'menunggu_persetujuan'; // Set status to pending approval
         $loan->notes = $request->notes;
 
         // Add borrowed_for field if user is a teacher
@@ -84,7 +88,7 @@ class LoanController extends Controller
 
         $loan->save();
 
-        return redirect()->route('loans.index')->with('success', 'Buku berhasil dipinjam. Silakan ambil buku Anda di perpustakaan.');
+        return redirect()->route('loans.index')->with('success', 'Permintaan peminjaman buku berhasil dikirim. Silakan tunggu persetujuan dari admin.');
     }
 
     public function extend(Request $request, BookLoan $loan)
@@ -111,6 +115,23 @@ class LoanController extends Controller
         $loan->save();
 
         return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil diperpanjang.');
+    }
+
+    public function cancel(BookLoan $loan)
+    {
+        // Check if loan belongs to current user
+        if ($loan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Check if loan can be canceled (still pending approval)
+        if ($loan->status !== 'menunggu_persetujuan') {
+            return back()->with('error', 'Hanya peminjaman yang masih menunggu persetujuan yang dapat dibatalkan.');
+        }
+
+        $loan->delete();
+
+        return redirect()->route('loans.index')->with('success', 'Permintaan peminjaman berhasil dibatalkan.');
     }
 
     public function storeRequest(Request $request)

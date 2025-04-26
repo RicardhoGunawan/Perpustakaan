@@ -15,10 +15,13 @@ return new class extends Migration
             $table->date('loan_date');
             $table->date('due_date');
             $table->date('return_date')->nullable();
-            $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
+            $table->enum('status', ['menunggu_persetujuan', 'ditolak', 'dipinjam', 'dikembalikan', 'terlambat'])->default('menunggu_persetujuan');
             $table->text('notes')->nullable();
+            $table->text('admin_notes')->nullable(); // Admin's notes for approval or rejection
             $table->integer('quantity')->default(1);
             $table->string('borrowed_for')->nullable(); // Untuk guru: kelas yang diajar
+            $table->timestamp('approved_at')->nullable(); // When the loan was approved
+            $table->foreignId('approved_by')->nullable()->constrained('users'); // Who approved the loan
             $table->timestamps();
         });
     }

@@ -7,16 +7,16 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 
-class SuperAdminSeeder extends Seeder
+class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        $role = Role::firstOrCreate(['name' => 'super_admin']);
+        $role = Role::firstOrCreate(['name' => 'Admin']);
 
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@example.com'],
+            ['email' => 'admin@example.com'],
             [
-                'name' => 'Super Admin',
+                'name' => 'Admin',
                 'password' => bcrypt('password'), // Ganti sesuai keinginan
             ]
         );

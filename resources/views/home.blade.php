@@ -3,62 +3,76 @@
 @section('title', 'Beranda')
 
 @section('content')
-    <!-- Hero Section Baru yang Ditingkatkan -->
+    <!-- Hero Section dengan Dropdown Responsif -->
     <div class="hero-section position-relative">
         <div class="overlay"></div>
         <div class="container position-relative z-3">
             <div class="row min-vh-75 align-items-center">
                 <div class="col-lg-7 text-center text-lg-start">
-                    <h1 class="display-4 fw-bold mb-3 hero-title">Selamat Datang di<br>Perpustakaan Sekolah</h1>
-                    <p class="lead mb-4 hero-subtitle">Temukan ribuan buku untuk menambah wawasan dan pengetahuan Anda</p>
+                    <h1 class="display-4 fw-bold mb-3 hero-title">Selamat Datang di<br><span class="">SI-TARLIB</span>
+                    </h1>
+                    <p class="lead mb-4 hero-subtitle">Platform Informasi Digital Perpustakaan SMAN Taruna Kasuari Nusantara
+                        Papua Barat</p>
+
+                    <!-- Search Section Responsif -->
+                    <div class="search-section mb-4">
+                        <form action="{{ route('books.index') }}" method="GET">
+                            <div class="input-group shadow-sm search-container">
+                                <input type="text" class="form-control border-0 py-2 search-input"
+                                    placeholder="Cari judul buku, pengarang, atau kategori..." name="search"
+                                    value="{{ request('search') }}" aria-label="Search books">
+
+                                <!-- Dropdown hanya muncul di desktop -->
+                                <div class="d-none d-lg-block">
+                                    <button class="btn btn-white dropdown-toggle px-3" type="button" id="categoryDropdown"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span id="selectedCategory" class="text-dark">Semua</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="categoryDropdown">
+                                        <li><a class="dropdown-item category-option" href="#" data-value="">Semua
+                                                Kategori</a></li>
+                                        <li><a class="dropdown-item category-option" href="#" data-value="K13">Teks
+                                                K13</a></li>
+                                        <li><a class="dropdown-item category-option" href="#"
+                                                data-value="merdeka">Kurikulum Merdeka</a></li>
+                                        <li><a class="dropdown-item category-option" href="#"
+                                                data-value="nonteks">Nonteks</a></li>
+                                    </ul>
+                                    <input type="hidden" name="category" id="categoryInput" value="">
+                                </div>
+
+                                <button class="btn btn-white px-3 search-btn" type="submit">
+                                    <i class="fas fa-search text-dark"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <div class="mt-2 text-white-50">
+                            <small>
+                                Kategori Populer:
+                                <a href="{{ route('books.index', ['category' => 'fiksi']) }}"
+                                    class="text-white text-decoration-none mx-1">Fiksi</a> •
+                                <a href="{{ route('books.index', ['category' => 'sains']) }}"
+                                    class="text-white text-decoration-none mx-1">Sains</a> •
+                                <a href="{{ route('books.index', ['category' => 'sejarah']) }}"
+                                    class="text-white text-decoration-none mx-1">Sejarah</a>
+                            </small>
+                        </div>
+                    </div>
+
                     <div class="d-flex flex-column flex-sm-row gap-2">
-                        <a href="{{ route('books.index') }}" class="btn btn-primary btn-lg px-4">
-                            <i class="fas fa-search me-2"></i>Jelajahi Katalog
+                        <a href="{{ route('books.index') }}" class="btn btn-outline-light btn-sm px-3">
+                            <i class="fas fa-book-open me-1"></i> Jelajahi Koleksi
                         </a>
                         @guest
-                            <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">
-                                <i class="fas fa-sign-in-alt me-2"></i>Masuk untuk Meminjam
+                            <a href="{{ route('login') }}" class="btn btn-light btn-sm px-3">
+                                <i class="fas fa-sign-in-alt me-1"></i> Masuk & Pinjam
                             </a>
                         @endguest
                     </div>
                 </div>
+
                 <div class="col-lg-5 d-none d-lg-block">
-                    <!-- <div class="hero-card">
-                                    <div class="card border-0 shadow hero-stats-card">
-                                        <div class="card-body p-4">
-                                            <div class="row g-4">
-                                                <div class="col-6">
-                                                    <div class="text-center">
-                                                        <i class="fas fa-book-open fa-2x text-primary mb-2"></i>
-                                                        <h2 class="mb-1">{{ $totalBooks ?? '1000+' }}</h2>
-                                                        <p class="mb-0 text-muted">Judul Buku</p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="text-center">
-                                                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                                                        <h2 class="mb-1">{{ $activeMembers ?? '500+' }}</h2>
-                                                        <p class="mb-0 text-muted">Anggota Aktif</p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="text-center">
-                                                        <i class="fas fa-list-alt fa-2x text-primary mb-2"></i>
-                                                        <h2 class="mb-1">{{ count($categories) }}</h2>
-                                                        <p class="mb-0 text-muted">Kategori</p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="text-center">
-                                                        <i class="fas fa-sync-alt fa-2x text-primary mb-2"></i>
-                                                        <h2 class="mb-1">{{ $activeLoans ?? '100+' }}</h2>
-                                                        <p class="mb-0 text-muted">Peminjaman</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> -->
+                    <!-- Tetap kosong -->
                 </div>
             </div>
         </div>
@@ -152,7 +166,8 @@
                 <div class="col-12 text-center">
                     <h2 class="fw-bold mb-3">Jelajahi Koleksi Kami</h2>
                     <p class="text-muted lead">Temukan bacaan favorit Anda dari berbagai kategori yang tersedia</p>
-                    <div class="mx-auto" style="width: 50px; height: 4px; background-color: #0d6efd; margin-bottom: 30px;">
+                    <div class="mx-auto"
+                        style="width: 50px; height: 4px; background-color: #0d6efd; margin-bottom: 30px;">
                     </div>
                 </div>
             </div>
@@ -209,7 +224,8 @@
 
                                     <!-- Judul dan Jumlah -->
                                     <h5 class="card-title fw-bold">{{ $category }}</h5>
-                                    <p class="card-text text-muted">{{ $categoryCounts[$category] ?? 0 }} buku tersedia</p>
+                                    <p class="card-text text-muted">{{ $categoryCounts[$category] ?? 0 }} buku tersedia
+                                    </p>
 
                                     <!-- CTA -->
                                     <div class="d-flex justify-content-between align-items-center mt-3">
@@ -232,66 +248,76 @@
 
 @section('styles')
     <style>
-        /* Style untuk Hero Section yang ditingkatkan */
+        /* CSS Utama */
         .hero-section {
             background: linear-gradient(rgba(13, 110, 253, 0.8), rgba(13, 110, 253, 0.9)), url('/images/library-bg.jpg');
             background-size: cover;
-            background-position: center;
-            color: white;
-            padding: 0;
+            padding: 4rem 0;
             position: relative;
             overflow: hidden;
         }
 
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(13, 110, 253, 0.9) 0%, rgba(0, 40, 120, 0.8) 100%);
-            z-index: 1;
+        /* Search Section Responsif */
+        .search-section .search-container {
+            border-radius: 0.5rem;
+            background-color: white;
+            max-width: 600px;
+            height: 50px; /* atau 3.5rem */
         }
 
-        .min-vh-75 {
-            min-height: 75vh;
+        .search-section .search-input {
+            border: none !important;
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            box-shadow: none !important;
+            flex-grow: 1;
         }
 
-        .hero-title {
-            font-size: 3.5rem;
-            letter-spacing: -0.5px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            animation: fadeInDown 1s ease;
+        .search-section .btn-white {
+            background-color: white;
+            border: none;
+            color: #495057;
+            padding: 0.5rem 0.8rem;
         }
 
-        .hero-subtitle {
-            font-size: 1.25rem;
-            font-weight: 400;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 1s ease 0.3s;
-            animation-fill-mode: both;
+        .search-section .dropdown-toggle {
+            border-left: 1px solid #dee2e6 !important;
+            min-width: 100px;
+            font-size: 0.9rem;
+            height: 50px; /* atau 3.5rem */
         }
 
-        .hero-card {
-            margin-top: 2rem;
-            animation: fadeIn 1s ease 0.5s;
-            animation-fill-mode: both;
+        /* Responsive Adjustments */
+        @media (max-width: 991.98px) {
+            .search-section .search-container {
+                max-width: 100%;
+            }
+
+            .search-section .search-input {
+                padding: 0.7rem 1rem;
+                font-size: 1rem;
+            }
         }
 
-        .hero-stats-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            transform: translateY(0);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        @media (max-width: 767.98px) {
+            .search-section .search-input {
+                padding: 0.8rem 1.2rem;
+            }
+
+            .search-section .search-btn {
+                padding: 0.7rem 1rem;
+            }
         }
 
-        .hero-stats-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
+        @media (max-width: 575.98px) {
+            .search-section .search-input {
+                padding: 0.9rem 1.3rem;
+                font-size: 1.05rem;
+            }
 
-        .z-3 {
-            z-index: 3;
+            .search-section .form-control::placeholder {
+                font-size: 0.9rem;
+            }
         }
 
         /* Animasi */
@@ -354,4 +380,34 @@
             }
         }
     </style>
+    <script>
+        // Script untuk dropdown kategori (sama seperti sebelumnya)
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryOptions = document.querySelectorAll('.category-option');
+            const selectedCategory = document.getElementById('selectedCategory');
+            const categoryInput = document.getElementById('categoryInput');
+
+            categoryOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const value = this.getAttribute('data-value');
+                    const text = this.textContent;
+
+                    selectedCategory.textContent = text;
+                    categoryInput.value = value;
+                });
+            });
+
+            // Set nilai awal jika ada di URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialCategory = urlParams.get('category');
+            if (initialCategory) {
+                const activeOption = document.querySelector(`.category-option[data-value="${initialCategory}"]`);
+                if (activeOption) {
+                    selectedCategory.textContent = activeOption.textContent;
+                    categoryInput.value = initialCategory;
+                }
+            }
+        });
+    </script>
 @endsection

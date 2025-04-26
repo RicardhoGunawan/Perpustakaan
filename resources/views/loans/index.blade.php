@@ -21,6 +21,12 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-danger mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="card mb-4">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Filter Peminjaman</h5>
@@ -32,6 +38,13 @@
                             <label for="status" class="form-label">Status</label>
                             <select name="status" id="status" class="form-select">
                                 <option value="">Semua Status</option>
+                                <option value="menunggu_persetujuan"
+                                    {{ request('status') == 'menunggu_persetujuan' ? 'selected' : '' }}>
+                                    Menunggu Persetujuan
+                                </option>
+                                <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>
+                                    Ditolak
+                                </option>
                                 <option value="dipinjam" {{ request('status') == 'dipinjam' ? 'selected' : '' }}>Dipinjam
                                 </option>
                                 <option value="dikembalikan" {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>
@@ -102,16 +115,27 @@
                                         <td>{{ \Carbon\Carbon::parse($loan->loan_date)->format('d/m/Y') }}</td>
                                         <td>
                                             {{ \Carbon\Carbon::parse($loan->due_date)->format('d/m/Y') }}
+                                            @if ($loan->extended)
+                                                <br><span class="badge bg-info small">Diperpanjang</span>
+                                            @endif
                                             @if ($loan->status == 'dipinjam' && \Carbon\Carbon::parse($loan->due_date)->isPast())
                                                 <br><span class="text-danger small">Terlambat
                                                     {{ \Carbon\Carbon::now()->diffInDays($loan->due_date) }} hari</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <span
-                                                class="badge bg-{{ $loan->status == 'dipinjam' ? 'primary' : ($loan->status == 'terlambat' ? 'danger' : 'success') }}">
-                                                {{ ucfirst($loan->status) }}
-                                            </span>
+                                            @if ($loan->status == 'menunggu_persetujuan')
+                                                <span class="badge bg-warning">Menunggu Persetujuan</span>
+                                            @elseif ($loan->status == 'ditolak')
+                                                <span class="badge bg-danger">Ditolak</span>
+                                            @elseif ($loan->status == 'dipinjam')
+                                                <span class="badge bg-primary">Dipinjam</span>
+                                            @elseif ($loan->status == 'dikembalikan')
+                                                <span class="badge bg-success">Dikembalikan</span>
+                                            @elseif ($loan->status == 'terlambat')
+                                                <span class="badge bg-danger">Terlambat</span>
+                                            @endif
+
                                             @if ($loan->return_date)
                                                 <br><small class="text-muted">Dikembalikan:
                                                     {{ \Carbon\Carbon::parse($loan->return_date)->format('d/m/Y') }}</small>
@@ -119,14 +143,28 @@
                                         </td>
                                         <td>{{ $loan->quantity }}</td>
                                         <td>
-                                            <a href="{{ route('books.show', $loan->book_id) }}"
-                                                class="btn btn-sm btn-outline-primary">Detail Buku</a>
+                                            <a href="{{ route('books.show', $loan->book->slug) }}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                Detail Buku
+                                            </a>
 
-                                            @if ($loan->status == 'dipinjam')
+                                            @if ($loan->status == 'dipinjam' && !$loan->extended)
                                                 <button class="btn btn-sm btn-outline-success mt-1" data-bs-toggle="modal"
                                                     data-bs-target="#extendModal{{ $loan->id }}">
                                                     Perpanjang
                                                 </button>
+                                            @endif
+
+                                            @if ($loan->status == 'menunggu_persetujuan')
+                                                <form action="{{ route('loans.cancel', $loan) }}" method="POST"
+                                                    class="d-inline mt-1">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Apakah Anda yakin ingin membatalkan permintaan ini?')">
+                                                        Batalkan
+                                                    </button>
+                                                </form>
                                             @endif
                                         </td>
                                     </tr>
@@ -151,12 +189,12 @@
                     <p>Sebagai guru, Anda dapat mengajukan permintaan untuk buku-buku baru yang diperlukan untuk kegiatan
                         pembelajaran.</p>
 
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    <a href="{{ route('book-requests.create') }}" class="btn btn-primary" data-bs-toggle="modal"
                         data-bs-target="#requestBookModal">
                         <i class="fas fa-plus me-1"></i> Ajukan Request Buku
-                    </button>
+                    </a>
 
-                    @if (auth()->user()->bookRequests->isNotEmpty())
+                    @if (isset(auth()->user()->bookRequests) && auth()->user()->bookRequests->isNotEmpty())
                         <div class="mt-4">
                             <h6>Request Saya</h6>
                             <div class="table-responsive">
@@ -194,7 +232,8 @@
     </div>
 
     <!-- Modal Request Buku -->
-    <div class="modal fade" id="requestBookModal" tabindex="-1" aria-labelledby="requestBookModalLabel" aria-hidden="true">
+    <div class="modal fade" id="requestBookModal" tabindex="-1" aria-labelledby="requestBookModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -236,7 +275,7 @@
 
     <!-- Modal Perpanjang untuk setiap peminjaman -->
     @foreach ($loans as $loan)
-        @if ($loan->status == 'dipinjam')
+        @if ($loan->status == 'dipinjam' && !$loan->extended)
             <div class="modal fade" id="extendModal{{ $loan->id }}" tabindex="-1"
                 aria-labelledby="extendModalLabel{{ $loan->id }}" aria-hidden="true">
                 <div class="modal-dialog">
@@ -297,5 +336,96 @@
                 </div>
             </div>
         @endif
+    @endforeach
+
+    <!-- Modal Detail untuk setiap peminjaman -->
+    @foreach ($loans as $loan)
+        <div class="modal fade" id="detailModal{{ $loan->id }}" tabindex="-1"
+            aria-labelledby="detailModalLabel{{ $loan->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detailModalLabel{{ $loan->id }}">Detail Peminjaman</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex mb-3">
+                            <img src="{{ $loan->book->cover_image ? asset('storage/' . $loan->book->cover_image) : asset('images/default-book-cover.png') }}"
+                                alt="{{ $loan->book->title }}" class="img-fluid rounded me-3"
+                                style="width: 80px; height: 110px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-1">{{ $loan->book->title }}</h5>
+                                <p class="text-muted mb-0">{{ $loan->book->author }}</p>
+                                <p class="text-muted mb-0">{{ $loan->book->publisher }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Kode Peminjaman:</strong></p>
+                                <p class="text-muted">{{ $loan->id }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Status:</strong></p>
+                                <p class="mb-0">
+                                    @if ($loan->status == 'menunggu_persetujuan')
+                                        <span class="badge bg-warning">Menunggu Persetujuan</span>
+                                    @elseif ($loan->status == 'ditolak')
+                                        <span class="badge bg-danger">Ditolak</span>
+                                    @elseif ($loan->status == 'dipinjam')
+                                        <span class="badge bg-primary">Dipinjam</span>
+                                    @elseif ($loan->status == 'dikembalikan')
+                                        <span class="badge bg-success">Dikembalikan</span>
+                                    @elseif ($loan->status == 'terlambat')
+                                        <span class="badge bg-danger">Terlambat</span>
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Tanggal Pinjam:</strong></p>
+                                <p class="text-muted">{{ \Carbon\Carbon::parse($loan->loan_date)->format('d M Y') }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Tanggal Kembali:</strong></p>
+                                <p class="text-muted">{{ \Carbon\Carbon::parse($loan->due_date)->format('d M Y') }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Jumlah:</strong></p>
+                                <p class="text-muted">{{ $loan->quantity }} buku</p>
+                            </div>
+                            @if (Auth::user()->hasRole('guru') && isset($loan->borrowed_for))
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Dipinjam Untuk:</strong></p>
+                                    <p class="text-muted">{{ $loan->borrowed_for }}</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if ($loan->notes)
+                            <div class="mb-2">
+                                <p class="mb-1"><strong>Catatan:</strong></p>
+                                <p class="text-muted">{{ $loan->notes }}</p>
+                            </div>
+                        @endif
+
+                        @if ($loan->extended && $loan->extension_notes)
+                            <div class="mb-2">
+                                <p class="mb-1"><strong>Catatan Perpanjangan:</strong></p>
+                                <p class="text-muted">{{ $loan->extension_notes }}</p>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endforeach
 @endsection
