@@ -14,8 +14,8 @@
         }
 
         .book-cover {
-            height: 250px;
-            object-fit: cover;
+            height: 300px;
+            object-fit: fill;
         }
 
         .stock-badge {
@@ -142,13 +142,14 @@
                     <select class="form-select" id="categorySelect" onchange="window.location = this.value;">
                         <option value="{{ route('books.index') }}" {{ !request('category') ? 'selected' : '' }}>Semua
                             Kategori</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ route('books.index', ['category' => $category]) }}"
-                                {{ request('category') == $category ? 'selected' : '' }}>
-                                {{ $category }}
+                        @foreach ($categories as $id => $name)
+                            <option value="{{ route('books.index', ['category' => $id]) }}"
+                                {{ request('category') == $id ? 'selected' : '' }}>
+                                {{ $name }}
                             </option>
                         @endforeach
                     </select>
+
                 </div>
 
                 <!-- Availability Filter -->
@@ -184,8 +185,9 @@
                             <span class="badge bg-{{ $book->availableStock > 0 ? 'success' : 'danger' }} stock-badge">
                                 {{ $book->availableStock > 0 ? 'Tersedia' : 'Dipinjam' }}
                             </span>
-                            <span class="badge bg-primary category-badge">{{ $book->category }}</span>
-                            <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/default-book-cover.png') }}"
+                            <span class="badge position-absolute top-0 end-0 m-2 bg-primary">
+                                {{ $book->category ? $book->category->name : 'Tidak ada Kategori' }}
+                            </span>                            <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/default-book-cover.png') }}"
                                 class="card-img-top book-cover" alt="{{ $book->title }}">
                             <div class="card-body">
                                 <h5 class="card-title book-title">{{ $book->title }}</h5>

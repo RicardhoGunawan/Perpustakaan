@@ -21,10 +21,16 @@ class Book extends Model
         'description',
         'stock',
         'cover_image',
-        'category',
+        'category_id', // <-- ini yang baru
         'slug', // tambahkan slug ke fillable juga!
 
+
     ];
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
 
     public function loans(): HasMany
     {

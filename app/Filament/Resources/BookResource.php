@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookResource\Pages;
 use App\Models\Book;
+use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -36,7 +37,7 @@ class BookResource extends Resource
                         Forms\Components\TextInput::make('isbn')
                             ->required()
                             ->maxLength(255)
-                            ->unique(ignorable: fn ($record) => $record)
+                            ->unique(ignorable: fn($record) => $record)
                             ->label('ISBN'),
                         Forms\Components\TextInput::make('publisher')
                             ->required()
@@ -53,18 +54,9 @@ class BookResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->label('Stok'),
-                        Forms\Components\Select::make('category')
-                            ->options([
-                                'Fiksi' => 'Fiksi',
-                                'Non-Fiksi' => 'Non-Fiksi',
-                                'Referensi' => 'Referensi',
-                                'Sains' => 'Sains',
-                                'Teknologi' => 'Teknologi',
-                                'Matematika' => 'Matematika',
-                                'Bahasa' => 'Bahasa',
-                                'Sejarah' => 'Sejarah',
-                                'Lainnya' => 'Lainnya',
-                            ])
+                        // Menggunakan data kategori dari Category model
+                        Forms\Components\Select::make('category_id')
+                            ->options(Category::pluck('name', 'id')) // Pluck data nama kategori dengan ID-nya
                             ->required()
                             ->label('Kategori'),
                         Forms\Components\Textarea::make('description')
@@ -99,7 +91,8 @@ class BookResource extends Resource
                     ->searchable()
                     ->limit(20)
                     ->label('Penerbit'),
-                Tables\Columns\TextColumn::make('category')
+                // Mengubah kategori agar menampilkan nama kategori, bukan ID
+                Tables\Columns\TextColumn::make('category.name') // Mengambil data nama kategori dari relasi
                     ->searchable()
                     ->sortable()
                     ->label('Kategori'),
@@ -137,7 +130,7 @@ class BookResource extends Resource
                     ])
                     ->label('Kategori'),
                 Tables\Filters\Filter::make('availableOnly')
-                    ->query(fn (Builder $query) => $query->whereRaw('stock > COALESCE((SELECT SUM(quantity) FROM book_loans WHERE book_id = books.id AND status = "dipinjam"), 0)'))
+                    ->query(fn(Builder $query) => $query->whereRaw('stock > COALESCE((SELECT SUM(quantity) FROM book_loans WHERE book_id = books.id AND status = "dipinjam"), 0)'))
                     ->label('Hanya Tersedia'),
             ])
             ->actions([
@@ -150,14 +143,14 @@ class BookResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -165,5 +158,5 @@ class BookResource extends Resource
             'create' => Pages\CreateBook::route('/create'),
             'edit' => Pages\EditBook::route('/{record}/edit'),
         ];
-    }    
+    }
 }

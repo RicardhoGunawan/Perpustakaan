@@ -21,7 +21,7 @@
                 <div class="card border-0 shadow-sm overflow-hidden rounded-3 position-sticky" style="top: 2rem;">
                     <div class="position-relative book-cover-container">
                         <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/default-book-cover.png') }}"
-                            class="img-fluid w-100" alt="{{ $book->title }}" style="object-fit: cover; height: 400px;">
+                            class="img-fluid w-100" alt="{{ $book->title }}" style="object-fill: cover; height: 450px;">
                         <div class="position-absolute top-0 end-0 m-3">
                             <span
                                 class="badge bg-{{ $book->availableStock > 0 ? 'success' : 'danger' }} py-2 px-3 rounded-pill fs-6">
@@ -33,7 +33,7 @@
 
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-primary rounded-pill py-2 px-3">{{ $book->category }}</span>
+                            <span class="badge bg-primary rounded-pill py-2 px-3">{{ $book->category->name }}</span>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -146,7 +146,7 @@
                                     <div class="col-md-6">
                                         <div class="book-detail-item border-bottom pb-3">
                                             <div class="small text-muted">Kategori</div>
-                                            <div class="fw-medium">{{ $book->category }}</div>
+                                            <div class="fw-medium">{{ $book->category->name }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -202,16 +202,6 @@
                                                                 <p class="card-text small text-muted mb-2">
                                                                     {{ $similar->author }}
                                                                 </p>
-                                                                <div class="d-flex align-items-center small mb-3">
-                                                                    <div class="text-warning me-2">
-                                                                        <i class="fas fa-star"></i>
-                                                                        <i class="fas fa-star"></i>
-                                                                        <i class="fas fa-star"></i>
-                                                                        <i class="fas fa-star"></i>
-                                                                        <i class="far fa-star"></i>
-                                                                    </div>
-                                                                    <span>4.0</span>
-                                                                </div>
                                                                 <a href="{{ route('books.show', $similar) }}"
                                                                     class="btn btn-sm btn-outline-primary">Lihat Detail</a>
                                                             </div>

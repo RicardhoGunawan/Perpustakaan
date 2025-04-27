@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Models\Student;
 use App\Models\User;
+use App\Models\SchoolClass;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -68,20 +69,19 @@ class StudentResource extends Resource
                             ->maxLength(255)
                             ->label('Nama Lengkap'),
 
-                        Forms\Components\Select::make('class')
-                            ->options([
-                                'X-1' => 'X-1',
-                                'X-2' => 'X-2',
-                                'X-3' => 'X-3',
-                                'XI-IPA-1' => 'XI-IPA-1',
-                                'XI-IPA-2' => 'XI-IPA-2',
-                                'XI-IPS-1' => 'XI-IPS-1',
-                                'XI-IPS-2' => 'XI-IPS-2',
-                                'XII-IPA-1' => 'XII-IPA-1',
-                                'XII-IPA-2' => 'XII-IPA-2',
-                                'XII-IPS-1' => 'XII-IPS-1',
-                                'XII-IPS-2' => 'XII-IPS-2',
-                            ])
+                        // Di dalam method form(), ganti select school_class_id dengan:
+                        Forms\Components\Select::make('school_class_id')
+                            ->relationship('schoolClass', 'id')
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->grade} {$record->class_name}")
+                            ->options(function () {
+                                return SchoolClass::where('is_active', true)
+                                    ->get()
+                                    ->mapWithKeys(function ($class) {
+                                        return [$class->id => "{$class->grade} {$class->class_name}"];
+                                    });
+                            })
+                            ->searchable()
+                            ->preload()
                             ->required()
                             ->label('Kelas'),
 
@@ -122,9 +122,20 @@ class StudentResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->label('Nama Lengkap'),
-                Tables\Columns\TextColumn::make('class')
-                    ->searchable()
-                    ->sortable()
+                Tables\Columns\TextColumn::make('schoolClass')
+                    ->getStateUsing(fn($record) => $record->schoolClass ? "{$record->schoolClass->grade} {$record->schoolClass->class_name}" : null)
+                    ->searchable(query: function (Builder $query, string $search) {
+                        $query->whereHas('schoolClass', function ($query) use ($search) {
+                            $query->where('grade', 'like', "%{$search}%")
+                                ->orWhere('class_name', 'like', "%{$search}%")
+                                ->orWhereRaw("CONCAT(grade, ' ', class_name) like ?", ["%{$search}%"]);
+                        });
+                    })
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        $query->join('school_classes', 'students.school_class_id', '=', 'school_classes.id')
+                            ->orderBy('school_classes.grade', $direction)
+                            ->orderBy('school_classes.class_name', $direction);
+                    })
                     ->label('Kelas'),
                 Tables\Columns\TextColumn::make('user.email')
                     ->searchable()
@@ -145,20 +156,12 @@ class StudentResource extends Resource
                     ->placeholder('-'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('class')
-                    ->options([
-                        'X-1' => 'X-1',
-                        'X-2' => 'X-2',
-                        'X-3' => 'X-3',
-                        'XI-IPA-1' => 'XI-IPA-1',
-                        'XI-IPA-2' => 'XI-IPA-2',
-                        'XI-IPS-1' => 'XI-IPS-1',
-                        'XI-IPS-2' => 'XI-IPS-2',
-                        'XII-IPA-1' => 'XII-IPA-1',
-                        'XII-IPA-2' => 'XII-IPA-2',
-                        'XII-IPS-1' => 'XII-IPS-1',
-                        'XII-IPS-2' => 'XII-IPS-2',
-                    ])
+                Tables\Filters\SelectFilter::make('school_class_id')
+                    ->options(function () {
+                        return SchoolClass::get()->mapWithKeys(function ($class) {
+                            return [$class->id => "{$class->grade} {$class->class_name}"];
+                        });
+                    })
                     ->label('Kelas'),
                 Tables\Filters\Filter::make('has_membership')
                     ->query(fn(Builder $query): Builder => $query->whereHas('user.member'))

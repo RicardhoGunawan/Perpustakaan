@@ -74,7 +74,6 @@ class UserResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('nis')
                                     ->required()
-                                    ->default('NIS-SEMENTARA') // Tambahkan default value
                                     ->maxLength(255),
 
                                 Forms\Components\TextInput::make('full_name')
@@ -83,9 +82,20 @@ class UserResource extends Resource
                                     ->dehydrated(true) // Pastikan selalu disimpan meski tidak diubah
                                     ->default(fn($operation, $record) => $record?->name), // Default value dari name user
 
-                                Forms\Components\TextInput::make('class')
+                                Forms\Components\Select::make('school_class_id')
+                                    ->relationship('schoolClass', 'id')
+                                    ->getOptionLabelFromRecordUsing(fn($record) => "{$record->grade} {$record->class_name}")
+                                    ->options(function () {
+                                        return \App\Models\SchoolClass::where('is_active', true)
+                                            ->get()
+                                            ->mapWithKeys(function ($class) {
+                                                return [$class->id => "{$class->grade} {$class->class_name}"];
+                                            });
+                                    })
+                                    ->searchable()
+                                    ->preload()
                                     ->required()
-                                    ->maxLength(255),
+                                    ->label('Kelas'),
 
                                 Forms\Components\TextInput::make('phone_number')
                                     ->tel()
@@ -100,8 +110,7 @@ class UserResource extends Resource
                                     ->image()
                                     ->directory('student-profiles'),
                             ])->columns(2),
-
-
+                            
                         Forms\Components\Fieldset::make('Data Guru')
                             ->visible(fn(Forms\Get $get) => $get('type') === 'teacher')
                             ->relationship('teacher')
@@ -112,7 +121,6 @@ class UserResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('nip')
                                     ->required()
-                                    ->default('NIP-SEMENTARA') // Tambahkan default value
                                     ->maxLength(255),
 
                                 Forms\Components\TextInput::make('full_name')

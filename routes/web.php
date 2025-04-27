@@ -19,15 +19,19 @@ use App\Http\Middleware\CheckMembership;
 // Home page
 Route::get('/', function () {
     $latestBooks = \App\Models\Book::latest()->take(8)->get();
-    $categories = \App\Models\Book::distinct()->pluck('category')->toArray();
-    $categoryCounts = [];
 
+    // Ambil kategori yang berbeda berdasarkan category_id
+    $categories = \App\Models\Category::all();  // Mengambil semua kategori
+
+    // Hitung jumlah buku untuk setiap kategori
+    $categoryCounts = [];
     foreach ($categories as $category) {
-        $categoryCounts[$category] = \App\Models\Book::where('category', $category)->count();
+        $categoryCounts[$category->id] = \App\Models\Book::where('category_id', $category->id)->count();
     }
 
     return view('home', compact('latestBooks', 'categories', 'categoryCounts'));
 })->name('home');
+
 
 // Authentication
 Auth::routes();
@@ -76,6 +80,7 @@ Route::middleware('auth')->group(function () {
     });
 
 });
+Route::get('/api/search-suggestions', action: [BookController::class, 'getSuggestions']);
 
 Auth::routes();
 

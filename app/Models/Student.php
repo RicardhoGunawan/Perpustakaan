@@ -14,7 +14,7 @@ class Student extends Model
         'user_id',
         'nis',
         'full_name',
-        'class',
+        'school_class_id', // Ganti class menjadi school_class_id
         'phone_number',
         'address',
         'date_of_birth',
@@ -26,4 +26,15 @@ class Student extends Model
         return $this->belongsTo(User::class);
     }
     
+    // Tambahkan relasi dengan SchoolClass
+    public function schoolClass(): BelongsTo
+    {
+        return $this->belongsTo(SchoolClass::class);
+    }
+    
+    // Accessor untuk mendapatkan nama kelas (untuk kompatibilitas dengan kode lama)
+    public function getClassAttribute()
+    {
+        return $this->schoolClass?->full_name;
+    }
 }

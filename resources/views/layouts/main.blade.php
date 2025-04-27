@@ -41,64 +41,38 @@
             color: var(--dark-color);
         }
 
-        /* Navbar styling - Enhanced for better responsiveness */
+        /* Enhanced Navbar styling with different appearance */
         .fixed-navbar {
             position: fixed;
-            /* Tetap di atas saat di-scroll */
             top: 0;
             left: 0;
             right: 0;
             width: 100%;
             z-index: 1030;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-            /* Shadow dasar */
-            transition: box-shadow 0.3s ease, padding 0.3s ease;
-            /* Transisi untuk efek scroll */
-            min-height: 60px;
-            /* Changed from fixed height to min-height for better mobile support */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            min-height: 65px;
             background-color: white;
-            /* Ensure background is white */
         }
 
         /* Add a class for when the navbar is scrolled */
         .navbar-scrolled {
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-            /* Shadow lebih kuat saat di-scroll */
-            padding-top: 0.5rem;
-            /* Sedikit padding lebih kecil saat di-scroll */
-            padding-bottom: 0.5rem;
+            padding-top: 0.4rem;
+            padding-bottom: 0.4rem;
         }
-
 
         /* Spacer for navbar */
         .navbar-spacer {
-            height: 60px;
-            /* Sesuaikan tinggi ini dengan min-height navbar */
+            height: 65px;
         }
-
-        /* Remove the flickering avoidance as we are not hiding the navbar */
-        /* body {
-    overflow-anchor: none;
-} */
-
-        /* REMOVE scroll behavior styles */
-        /*
-.scroll-down .fixed-navbar {
-    transform: translateY(-100%);
-}
-
-.scroll-up .fixed-navbar {
-    transform: translateY(0);
-}
-*/
-
 
         /* Ensure dropdowns remain visible */
         .dropdown-menu {
-            /* transform: none !important; REMOVE this, Bootstrap handles this */
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
             border: none;
             animation: fadeIn 0.2s ease;
+            border-radius: 0.5rem;
         }
 
         @keyframes fadeIn {
@@ -113,22 +87,9 @@
             }
         }
 
-
         .navbar {
             padding: 0.75rem 0;
-            /* Padding default */
-            /* Removed initial box-shadow, handled by fixed-navbar */
-            /* Removed transition, handled by fixed-navbar */
         }
-
-        /* REMOVE this, merged with fixed-navbar.navbar-scrolled */
-        /*
-.navbar-scrolled {
-    padding: 0.25rem 0;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-*/
-
 
         .navbar-brand {
             font-weight: 700;
@@ -141,41 +102,90 @@
             color: var(--primary-dark);
         }
 
+        /* Updated Nav Link Styles for a different appearance */
         .nav-link {
             font-weight: 500;
             color: var(--gray-800);
             position: relative;
             padding: 0.5rem 1rem;
-            transition: color 0.3s ease;
+            margin: 0 0.2rem;
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
         }
 
-        .nav-link:hover,
+        .nav-link:hover {
+            color: var(--primary-color);
+            background-color: rgba(var(--bs-primary-rgb), 0.08);
+        }
+
         .nav-link.active {
             color: var(--primary-color);
+            background-color: rgba(var(--bs-primary-rgb), 0.12);
+            font-weight: 600;
         }
 
+        /* Remove the underline effect and replace with background effect */
         .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background-color: var(--primary-color);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
+            display: none;
         }
 
-        .nav-link:hover::after,
-        .nav-link.active::after {
-            width: 70%;
+        /* Fix for dropdown button when dropdown is open/active */
+        .user-dropdown .btn.btn-outline-primary.show,
+        .user-dropdown .btn.btn-outline-primary:active,
+        .user-dropdown .btn.btn-outline-primary[aria-expanded="true"] {
+            background-color: var(--primary-color) !important;
+            /* Use primary color for background */
+            color: white !important;
+            /* White text for contrast */
+            border-color: var(--primary-color) !important;
+            /* Match border color */
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25) !important;
+            /* Optional focus ring */
+        }
+
+        /* Ensure icon is visible in active/open state */
+        .user-dropdown .btn.btn-outline-primary.show i,
+        .user-dropdown .btn.btn-outline-primary:active i,
+        .user-dropdown .btn.btn-outline-primary[aria-expanded="true"] i {
+            color: white !important;
+            /* Make icon white for visibility */
+        }
+
+        /* Make dropdown arrow visible in active state */
+        .user-dropdown .btn.dropdown-toggle.show::after,
+        .user-dropdown .btn.dropdown-toggle:active::after,
+        .user-dropdown .btn.dropdown-toggle[aria-expanded="true"]::after {
+            color: white !important;
+            /* Ensure dropdown arrow is visible */
+        }
+
+        /* Improve contrast for dropdown items */
+        .dropdown-menu .dropdown-item {
+            color: var(--gray-800);
+            /* Ensure text in dropdown menu has good contrast */
+        }
+
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-menu .dropdown-item:focus {
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+            /* Light background on hover */
+            color: var(--primary-color);
+            /* Primary color text on hover */
+        }
+
+        .dropdown-item {
+            padding: 0.6rem 1.2rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.08);
         }
 
         /* Mobile optimizations */
         @media (max-width: 991.98px) {
             .navbar-collapse {
-                max-height: calc(100vh - 60px);
-                /* Adjust if navbar-spacer height changes */
+                max-height: calc(100vh - 65px);
                 overflow-y: auto;
                 padding-bottom: 1rem;
             }
@@ -183,33 +193,22 @@
             .navbar .nav-link {
                 padding: 0.75rem 1rem;
                 border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            }
-
-            .navbar .nav-link::after {
-                display: none;
-                /* Remove the underline effect on mobile */
+                border-radius: 0;
+                margin: 0;
             }
 
             .navbar .nav-link.active {
-                /* Use primary color for active links on mobile */
                 color: var(--primary-color);
                 background-color: rgba(var(--bs-primary-rgb), 0.05);
-                /* Subtle background */
                 border-left: 3px solid var(--primary-color);
-                /* Add a left border indicator */
                 padding-left: calc(1rem - 3px);
-                /* Adjust padding to compensate for border */
-                border-radius: 0;
-                /* Remove border radius if using left border */
             }
-
 
             .user-dropdown .dropdown-menu {
                 width: 100%;
                 margin-top: 0.5rem;
             }
 
-            /* Enhanced styles for mobile toggle button */
             .navbar-toggler {
                 padding: 0.25rem 0.5rem;
                 font-size: 1rem;
@@ -219,32 +218,19 @@
                 box-shadow: none;
             }
 
-            /* Responsive dropdown akun di mobile - refined */
             .user-dropdown .dropdown-menu-mobile-show {
                 position: static !important;
-                /* Change to static or relative within collapse */
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
                 width: auto;
-                /* Allow Bootstrap to handle width within collapse */
                 margin-top: 0;
-                /* Adjust margin */
-                border-radius: 0.25rem;
-                /* Keep border radius */
+                border-radius: 0.5rem;
                 box-shadow: none;
-                /* Remove extra shadow inside collapse */
                 z-index: auto;
-                /* Default z-index */
                 border: 1px solid rgba(0, 0, 0, 0.175);
-                /* Add a border */
             }
 
             .user-dropdown .dropdown-menu-mobile-show .dropdown-item {
                 padding: 0.75rem 1.5rem;
-                /* Adjust padding */
                 font-size: 1rem;
-                /* Adjust font size */
             }
 
             .user-dropdown>a.btn {
@@ -252,14 +238,7 @@
                 justify-content: center;
                 font-size: 1rem;
                 margin-bottom: 0.5rem;
-                /* Add space below dropdown toggle */
             }
-        }
-
-        /* Add JS to toggle the fixed-navbar visibility while scrolling - REMOVED */
-        /* Keep the desktop dropdown styles */
-        @media (min-width: 992px) {
-            /* Dropdown menu styles are already defined above and apply here */
         }
 
 
@@ -526,25 +505,29 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- Updated Navbar with right-aligned navigation items -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-navbar">
         <div class="container">
+            <!-- Logo and Brand Name -->
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" height="30" class="me-2">
                 <span class="d-sm-inline">SI-TARLIB</span>
             </a>
 
-
-
+            <!-- Mobile Toggle Button -->
             <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-
-
+            <!-- Navigation Items - Modified to be right-aligned -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <!-- Empty div to push nav items to the right -->
+                <div class="me-auto"></div>
+
+                <!-- Nav Items now on the right -->
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                             <i class="fas fa-home d-lg-none me-2"></i>Beranda
@@ -575,10 +558,12 @@
                         @endif
                     @endauth
                 </ul>
-                <div class="mt-3 mt-lg-0">
+
+                <!-- User Account Section - Kept separate from nav items -->
+                <div class="ms-lg-3 mt-3 mt-lg-0">
                     @auth
                         <div class="dropdown user-dropdown">
-                            <a class="btn btn-outline-primary dropdown-toggle d-flex align-items-center w-100 w-sm-auto"
+                            <a class="btn btn-outline-primary rounded-pill dropdown-toggle d-flex align-items-center w-100 w-sm-auto"
                                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-2"></i>
                                 <span class="d-none d-sm-inline">{{ Auth::user()->name }}</span>
@@ -610,11 +595,11 @@
                         </div>
                     @else
                         <div class="d-grid d-lg-flex gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">
+                            <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm rounded-pill">
                                 <i class="fas fa-sign-in-alt me-1"></i>
                                 <span>Masuk</span>
                             </a>
-                            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">
+                            <a href="{{ route('register') }}" class="btn btn-primary btn-sm rounded-pill">
                                 <i class="fas fa-user-plus me-1"></i>
                                 <span>Daftar</span>
                             </a>
